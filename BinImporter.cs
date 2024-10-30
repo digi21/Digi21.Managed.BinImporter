@@ -43,7 +43,18 @@ public class Importador(Stream stream, Point3D origenGlobal, float precision) : 
     private Geometry.Geometry LeeTexto(Header cabecera, MaxMin max)
     {
         var coordenadas = ReadStruct<InternalStructs.Point3D>();
-        var texto = Encoding.ASCII.GetString(reader.ReadBytes(Marshal.SizeOf(typeof(InternalStructs.Point3D)) * (cabecera.NumberOfPoints - 1))).Trim();
+        var bytes = reader.ReadBytes(Marshal.SizeOf(typeof(InternalStructs.Point3D)) * (cabecera.NumberOfPoints - 1));
+
+        var tamano = 0;
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            if (bytes[i] != 0) continue;
+
+            tamano = i;
+            break;
+        }
+
+        var texto = Encoding.Latin1.GetString(bytes, 0, tamano);
         return new Text(cabecera.Code, TipoMaxAMaxMin(max), Punto3DToPunto3D(coordenadas), max.Extra.Z / 100.0f, texto, max.Extra.X / precision, (byte)max.Extra.Y);
     }
 
